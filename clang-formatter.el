@@ -28,6 +28,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'project)
 
 (defgroup clang-format nil
   "Group for clang-format."
@@ -143,9 +144,9 @@ Override the default argument."
     ;; Useful for specifying .clang-format file.
     ;; eg. --style="%R/.clang-format"
     (if (string-search "%R" args)
-        (if (null (vc-root-dir))
+        (if (null (project-root (project-current)))
             (error "The arguments contains macro for vc root directory but unable find vc root directory")
-          (setf args (string-replace "%R" (vc-root-dir) args))))
+          (setf args (string-replace "%R" (project-root (project-current)) args))))
 
     ;; Finallize ‘command’ by concatenating it with ‘args’.
     (setf command (concat command " " args))
