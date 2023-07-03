@@ -199,5 +199,10 @@ Override the default argument."
       (kill-buffer tmp-buf))
     (delete-file tmp-file)))
 
+(defun clang-format-before-save ()
+  "Formats all supported modes before save."
+  (cl-loop for value in '(c-mode c++-mode java-mode javascript-mode objc-mode csharp-mode protobuf-mode)
+           collect (add-hook value #'((add-hook before-save-hook 'clang-format-buffer nil 'local)))))
+
 (provide 'clang-formatter)
 ;;; clang-formatter.el ends here
