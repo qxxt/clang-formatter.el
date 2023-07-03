@@ -59,6 +59,6 @@ You can configure arguments from =.dir-locals.el=:
 If you have [[https://clang.llvm.org/docs/ClangFormatStyleOptions.html][clang-configuration]] file in root directory of your project, you can use "%R" and it will be replaced with your project root.
 For example, if project root is "~/project/abc":
 #+begin_src emacs-lisp
-          ((nil . ((clang-format-args . "--style=file:%R/.clang-format" ;; -> --style=file:~/project/abc/.clang-format
+          ((nil . ((clang-format-args . "--style=file:%R/.clang-format" ;; => --style=file:~/project/abc/.clang-format
                                       ))))
 #+end_src
