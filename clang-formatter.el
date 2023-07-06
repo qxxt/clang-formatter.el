@@ -36,7 +36,8 @@
 (defcustom clang-format-command "clang-format"
   "The ‘clang-format’ command."
   :type 'string
-  :group 'clang-format)
+  :group 'clang-format
+  :risky t)
 
 (defcustom clang-format-args "--style=google"
   "The default arguments for clang-format."
