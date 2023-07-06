@@ -5,7 +5,7 @@
 
 ;; Authors: qxxt
 ;; URL: https://github.com/qxxt/clang-formatter.el
-;; Package-Requires: ((emacs) (cl-lib))
+;; Package-Requires: ((emacs) (project))
 ;; Keywords: clang-format
 
 ;; This program is free software: you can redistribute it and/or modify
@@ -27,7 +27,6 @@
 
 ;;; Code:
 
-(require 'cl-lib)
 (require 'project)
 
 (defgroup clang-format nil
@@ -102,40 +101,40 @@ Override the default argument."
     ;; Replace ‘args’ with mode specific if provided.
     ;; Adds filename if users use non-file buffer which has
     ;; no filename.
-    (cl-case major-mode
-      ('c-mode
        (if (not (null clang-format-c-args))
            (setf args clang-format-c-args))
+    (cond
+      ((eq major-mode 'c-mode)
        (if (null tmp-file)
            (setf tmp-file "tmp.c")))
-      ('c++-mode
        (if (not (null clang-format-c++-args))
            (setf args clang-format-c++-args))
+      ((eq major-mode 'c++-mode)
        (if (null tmp-file)
            (setf tmp-file "tmp.cc")))
-      ('java-mode
        (if (not (null clang-format-java-args))
            (setf args clang-format-java-args))
+      ((eq major-mode 'java-mode)
        (if (null tmp-file)
            (setf tmp-file "tmp.java")))
-      ('javascript-mode
        (if (not (null clang-format-javascript-args))
            (setf args clang-format-javascript-args))
+      ((eq major-mode 'javascript-mode)
        (if (null tmp-file)
            (setf tmp-file "tmp.js")))
-      ('objc-mode
        (if (not (null clang-format-objc-args))
            (setf args clang-format-objc-args))
+      ((eq major-mode 'objc-mode)
        (if (null tmp-file)
            (setf tmp-file "tmp.mm")))
-      ('csharp-mode
        (if (not (null clang-format-csharp-args))
            (setf args clang-format-csharp-args))
+      ((eq major-mode 'csharp-mode)
        (if (null tmp-file)
            (setf tmp-file "tmp.cs")))
-      ('protobuf-mode
        (if (not (null clang-format-protobuf-args))
            (setf args clang-format-protobuf-args))
+      ((eq major-mode 'protobuf-mode)
        (if (null tmp-file)
            (setf tmp-file "tmp.proto")))
       (t (error (concat "Mode not supported: " (symbol-name major-mode)))))
@@ -201,8 +200,8 @@ Override the default argument."
 
 (defun clang-format-before-save ()
   "Formats all supported modes before save."
-  (cl-loop for value in '(c-mode c++-mode java-mode javascript-mode objc-mode csharp-mode protobuf-mode)
-           collect (add-hook value #'((add-hook before-save-hook 'clang-format-buffer nil 'local)))))
+  (dolist (hook '(c-mode-hook c++-mode-hook java-mode-hook javascript-mode-hook objc-mode-hook csharp-mode-hook protobuf-mode-hook))
+    (add-hook hook (lambda () (add-hook 'before-save-hook 'clang-format-buffer nil 'local)))))
 
 (provide 'clang-formatter)
 ;;; clang-formatter.el ends here
