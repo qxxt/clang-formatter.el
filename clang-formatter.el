@@ -164,9 +164,6 @@ Override the default argument."
       ;; Dry run formatter to check if there is a need for
       ;; formatting. And write the output to ‘tmp-buf’.
       ;;
-      ;; "--dry-run" flag will give empty output if there is
-      ;; formatting is needed. This eliminates the need for diff
-      ;; checking.
       (if (not (zerop (call-process-shell-command (concat command " --dry-run --fno-color-diagnostics " tmp-file) nil tmp-buf)))
           (message "Error while calling ’%s’" (concat command " --dry-run --fno-color-diagnostics " tmp-file))
 
