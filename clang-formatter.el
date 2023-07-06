@@ -39,48 +39,48 @@
   :group 'clang-format
   :risky t)
 
-(defcustom clang-format-args "--style=google"
+(defcustom clang-format-style "Google"
   "The default arguments for clang-format."
   :type 'string
   :group 'clang-format)
 
-(defcustom clang-format-c-args nil
+(defcustom clang-format-c-style nil
   "Clang-format arguments for ‘c-mode’.
 Override the default argument."
   :type 'string
   :group 'clang-format)
 
-(defcustom clang-format-c++-args nil
+(defcustom clang-format-c++-style nil
   "Clang-format arguments for ‘c++-mode’.
 Override the default argument."
   :type 'string
   :group 'clang-format)
 
-(defcustom clang-format-java-args nil
+(defcustom clang-format-java-style nil
   "Clang-format arguments for ‘java-mode’.
 Override the default argument."
   :type 'string
   :group 'clang-format)
 
-(defcustom clang-format-javascript-args nil
+(defcustom clang-format-javascript-style nil
   "Clang-format arguments for ‘javascript-mode’.
 Override the default argument."
   :type 'string
   :group 'clang-format)
 
-(defcustom clang-format-objc-args nil
+(defcustom clang-format-objc-style nil
   "Clang-format arguments for ‘objc-mode’.
 Override the default argument."
   :type 'string
   :group 'clang-format)
 
-(defcustom clang-format-csharp-args nil
+(defcustom clang-format-csharp-style nil
   "Clang-format arguments for ‘csharp-mode’.
 Override the default argument."
   :type 'string
   :group 'clang-format)
 
-(defcustom clang-format-protobuf-args nil
+(defcustom clang-format-protobuf-style nil
   "Clang-format arguments for ‘protobuf-mode’.
 Override the default argument."
   :type 'string
@@ -95,47 +95,47 @@ Override the default argument."
   (let ((tmp-file (unless (null buffer-file-name)
                     (file-name-nondirectory buffer-file-name)))
         (command clang-format-command)
-        (args clang-format-args)
+        (style (concat "--style=" clang-format-style))
         (coding-system-for-read 'utf-8)
         (coding-system-for-write 'utf-8))
 
-    ;; Replace ‘args’ with mode specific if provided.
+    ;; Replace ‘style’ with mode specific if provided.
     ;; Adds filename if users use non-file buffer which has
     ;; no filename.
-       (if (not (null clang-format-c-args))
-           (setf args clang-format-c-args))
     (cond
       ((eq major-mode 'c-mode)
+       (if (not (null clang-format-c-style))
+           (setf style clang-format-c-style))
        (if (null tmp-file)
            (setf tmp-file "tmp.c")))
-       (if (not (null clang-format-c++-args))
-           (setf args clang-format-c++-args))
       ((eq major-mode 'c++-mode)
+       (if (not (null clang-format-c++-style))
+           (setf style clang-format-c++-style))
        (if (null tmp-file)
            (setf tmp-file "tmp.cc")))
-       (if (not (null clang-format-java-args))
-           (setf args clang-format-java-args))
       ((eq major-mode 'java-mode)
+       (if (not (null clang-format-java-style))
+           (setf style clang-format-java-style))
        (if (null tmp-file)
            (setf tmp-file "tmp.java")))
-       (if (not (null clang-format-javascript-args))
-           (setf args clang-format-javascript-args))
       ((eq major-mode 'javascript-mode)
+       (if (not (null clang-format-javascript-style))
+           (setf style clang-format-javascript-style))
        (if (null tmp-file)
            (setf tmp-file "tmp.js")))
-       (if (not (null clang-format-objc-args))
-           (setf args clang-format-objc-args))
       ((eq major-mode 'objc-mode)
+       (if (not (null clang-format-objc-style))
+           (setf style clang-format-objc-style))
        (if (null tmp-file)
            (setf tmp-file "tmp.mm")))
-       (if (not (null clang-format-csharp-args))
-           (setf args clang-format-csharp-args))
       ((eq major-mode 'csharp-mode)
+       (if (not (null clang-format-csharp-style))
+           (setf style clang-format-csharp-style))
        (if (null tmp-file)
            (setf tmp-file "tmp.cs")))
-       (if (not (null clang-format-protobuf-args))
-           (setf args clang-format-protobuf-args))
       ((eq major-mode 'protobuf-mode)
+       (if (not (null clang-format-protobuf-style))
+           (setf style clang-format-protobuf-style))
        (if (null tmp-file)
            (setf tmp-file "tmp.proto")))
       (t (error (concat "Mode not supported: " (symbol-name major-mode)))))
@@ -143,13 +143,10 @@ Override the default argument."
     ;; Expands %R to root vc directory.
     ;; Useful for specifying .clang-format file.
     ;; eg. --style="%R/.clang-format"
-    (if (string-search "%R" args)
+    (if (string-search "%R" style)
         (if (null (project-root (project-current)))
-            (error "The arguments contains macro for vc root directory but unable find vc root directory")
-          (setf args (string-replace "%R" (project-root (project-current)) args))))
-
-    ;; Finallize ‘command’ by concatenating it with ‘args’.
-    (setf command (concat command " " args))
+            (error "The arguments contains macro for root directory but unable find vc root directory")
+          (setf style (string-replace "%R" (project-root (project-current)) style))))
 
     ;; Create ‘temp-file’ and write the content of ‘current-buffer’ to
     ;; it.
@@ -164,8 +161,11 @@ Override the default argument."
       ;; Dry run formatter to check if there is a need for
       ;; formatting. And write the output to ‘tmp-buf’.
       ;;
-      (if (not (zerop (call-process-shell-command (concat command " --dry-run --fno-color-diagnostics " tmp-file) nil tmp-buf)))
-          (message "Error while calling ’%s’" (concat command " --dry-run --fno-color-diagnostics " tmp-file))
+      ;; "--dry-run" flag will give empty output if the
+      ;; input is already formatted. This eliminates
+      ;; the need for diff checking.
+      (if (not (zerop (call-process command nil tmp-buf nil style "--dry-run" "--ferror-limit=1" "--fno-color-diagnostics" tmp-file)))
+          (message "Error while calling ’%s’" (concat command " " style " --dry-run --ferror-limit=1 --fno-color-diagnostics " tmp-file))
 
         ;; Check if the ‘tmp-buf’ is empty.
         (if (zerop (buffer-size tmp-buf))
@@ -186,11 +186,11 @@ Override the default argument."
               (erase-buffer))
 
             ;; Call formatter and output to ‘patch-buf’.
-            (if (not (zerop (call-process-shell-command (concat command " " tmp-file) nil patch-buf)))
-                (message "Error while calling ’%s’" (concat command " " tmp-file))
+            (if (not (zerop (call-process command nil patch-buf nil style tmp-file)))
+                (message "Error while calling ’%s’" (concat command " " style " " tmp-file))
               ;; Replace the content of current buffer with
               ;; ‘patch-buf’.
-              (message "Formatted with ‘%s’" (concat command " " tmp-file))
+              (message "Formatted with ‘%s’" (concat command " " style " " tmp-file))
               (replace-buffer-contents patch-buf))
             (kill-buffer patch-buf))))
       (kill-buffer tmp-buf))
