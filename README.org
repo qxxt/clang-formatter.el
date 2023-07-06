@@ -30,35 +30,35 @@ Or you can adds before-save-hook to all supported mode by:
 #+begin_src emacs-lisp
   (add-hook 'prog-mode-hook #'(lambda ()
                                 (if (cl-find major-mode '(c-mode c++-mode java-mode javascript-mode objc-mode csharp-mode protobuf-mode))
-                                    (add-hook before-save-hook 'clang-format-buffer nil 'local))))
+                                    (add-hook ’before-save-hook 'clang-format-buffer nil 'local))))
 #+end_src
 
 ** Configuration
-| variable                       | description                                                                                             | default          |
-| =clang-format-command=         | command for clang-format, can be absolute path to clang-format binary. (eg, "/usr/bin/clang-format-16") | "clang-format"   |
-| =clang-format-args=            | argument passed to clang-format                                                                         | "--style=google" |
-| =clang-format-c-args=          | c-mode argument for clang-format                                                                        | nil              |
-| =clang-format-c++-args=        | c++-mode argument for clang-format                                                                      | nil              |
-| =clang-format-java-args=       | java-mode argument for clang-format                                                                     | nil              |
-| =clang-format-javascript-args= | javascript-mode argument for clang-format                                                               | nil              |
-| =clang-format-objc-args=       | objc-mode argument for clang-format                                                                     | nil              |
-| =clang-format-csharp-args=     | csharp-mode argument for clang-format                                                                   | nil              |
-| =clang-format-protobuf-args=   | protobuf-mode argument for clang-format                                                                 | nil              |
+| variable                        | description                                                                                             | default        |
+| =clang-format-command=          | command for clang-format, can be absolute path to clang-format binary. (eg, "/usr/bin/clang-format-16") | "clang-format" |
+| =clang-format-style=            | style passed to clang-format                                                                            | "google"       |
+| =clang-format-c-style=          | c-mode style for clang-format                                                                           | nil            |
+| =clang-format-c++-style=        | c++-mode style for clang-format                                                                         | nil            |
+| =clang-format-java-style=       | java-mode style for clang-format                                                                        | nil            |
+| =clang-format-javascript-style= | javascript-mode style for clang-format                                                                  | nil            |
+| =clang-format-objc-style=       | objc-mode style for clang-format                                                                        | nil            |
+| =clang-format-csharp-style=     | csharp-mode style for clang-format                                                                      | nil            |
+| =clang-format-protobuf-style=   | protobuf-mode style for clang-format                                                                    | nil            |
 
 
-You can customize argument passed to =clang-format= by modifying =clang-format-args=.
-=clang-format-args= will be overriden by specific mode argument if it’s not nil.
+You can customize style passed to =clang-format= by modifying =clang-format-style=.
+=clang-format-style= will be overriden by specific mode style if they are not nil.
 
 *** Local Variable
-You can configure arguments from =.dir-locals.el=:
+You can configure styles from =.dir-locals.el=:
 #+begin_src emacs-lisp
-  ((c-mode . ((clang-format-c-args . "--style=\"{BasedOnStyle: GNU,AlignAfterOpenBracket: Align,SortIncludes: Never,}\""))))
+  ((c-mode . ((clang-format-c-style . "{BasedOnStyle: GNU,AlignAfterOpenBracket: Align,SortIncludes: Never}"))))
 #+end_src
 
 *** Macro
 If you have [[https://clang.llvm.org/docs/ClangFormatStyleOptions.html][clang-configuration]] file in root directory of your project, you can use "%R" and it will be replaced with your project root.
 For example, if project root is "~/project/abc":
 #+begin_src emacs-lisp
-          ((nil . ((clang-format-args . "--style=file:%R/.clang-format" ;; => --style=file:~/project/abc/.clang-format
+          ((nil . ((clang-format-style . "file:%R/.clang-format" ;; => --style=file:~/project/abc/.clang-format
                                       ))))
 #+end_src
